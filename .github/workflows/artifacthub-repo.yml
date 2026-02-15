@@ -1,0 +1,51 @@
+name: Artifact Hub Repo Metadata
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - artifacthub-repo.yml
+      - .github/workflows/artifacthub-repo.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-artifacthub-repo:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare gh-pages worktree
+        run: |
+          if git ls-remote --exit-code --heads origin gh-pages; then
+            git fetch origin gh-pages:refs/remotes/origin/gh-pages
+            git worktree add gh-pages refs/remotes/origin/gh-pages
+          else
+            git worktree add -b gh-pages gh-pages
+          fi
+
+      - name: Copy artifacthub-repo.yml
+        run: |
+          cp artifacthub-repo.yml gh-pages/artifacthub-repo.yml
+
+      - name: Commit and push
+        run: |
+          cd gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add artifacthub-repo.yml
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "Sync artifacthub-repo.yml from ${GITHUB_SHA}"
+          git push origin HEAD:gh-pages
+

@@ -1,0 +1,17 @@
+﻿{{- if and .Values.library.persistence.enabled (not .Values.library.persistence.existingClaim) -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "opds-shelf.fullname" . }}-library
+  labels:
+    {{- include "opds-shelf.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    {{- toYaml .Values.library.persistence.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.library.persistence.size }}
+  {{- if .Values.library.persistence.storageClassName }}
+  storageClassName: {{ .Values.library.persistence.storageClassName }}
+  {{- end }}
+{{- end }}

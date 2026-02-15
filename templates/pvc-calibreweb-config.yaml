@@ -1,0 +1,17 @@
+﻿{{- if and .Values.calibreWeb.enabled .Values.calibreWeb.persistence.enabled (not .Values.calibreWeb.persistence.existingClaim) -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "opds-shelf.fullname" . }}-calibreweb-config
+  labels:
+    {{- include "opds-shelf.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    {{- toYaml .Values.calibreWeb.persistence.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.calibreWeb.persistence.size }}
+  {{- if .Values.calibreWeb.persistence.storageClassName }}
+  storageClassName: {{ .Values.calibreWeb.persistence.storageClassName }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,68 @@
+﻿{{- if and .Values.importer.enabled .Values.ingest.enabled -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "opds-shelf.fullname" . }}-importer
+  labels:
+    {{- include "opds-shelf.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.importer.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "opds-shelf.selectorLabels" . | nindent 12 }}
+            app.kubernetes.io/component: importer
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            {{- toYaml .Values.importer.securityContext | nindent 12 }}
+          containers:
+            - name: importer
+              image: "{{ .Values.importer.image.repository }}:{{ .Values.importer.image.tag }}"
+              imagePullPolicy: {{ .Values.importer.image.pullPolicy }}
+              env:
+                - name: TZ
+                  value: {{ .Values.global.timezone | quote }}
+              command: ["/bin/sh", "-lc"]
+              args:
+                - |
+                  set -euo pipefail
+                  LIB="{{ .Values.library.mountPath }}"
+                  ING="{{ .Values.ingest.mountPath }}"
+                  PROC="${ING}/processed"
+                  mkdir -p "$PROC"
+
+                  find "$ING" -maxdepth 1 -type f \
+                    \( -iname "*.fb2" -o -iname "*.fbz" -o -iname "*.fb2.zip" -o -iname "*.epub" -o -iname "*.pdf" \) \
+                    -print0 | while IFS= read -r -d '' f; do
+                      echo "Importing: $f"
+
+                      if echo "$f" | grep -qiE '\.fb2\.zip$'; then
+                        nf="$(echo "$f" | sed -E 's/\.fb2\.zip$/.fbz/I')"
+                        mv "$f" "$nf"
+                        f="$nf"
+                      fi
+
+                      calibredb add --with-library "$LIB" "$f"
+                      mv "$f" "$PROC/"
+                    done
+              volumeMounts:
+                - name: library
+                  mountPath: {{ .Values.library.mountPath }}
+                - name: ingest
+                  mountPath: {{ .Values.ingest.mountPath }}
+              resources:
+                {{- toYaml .Values.importer.resources | nindent 16 }}
+          volumes:
+            - name: library
+              persistentVolumeClaim:
+                claimName: {{ default (printf "%s-library" (include "opds-shelf.fullname" .)) .Values.library.persistence.existingClaim }}
+            - name: ingest
+              persistentVolumeClaim:
+                claimName: {{ default (printf "%s-ingest" (include "opds-shelf.fullname" .)) .Values.ingest.persistence.existingClaim }}
+{{- end }}

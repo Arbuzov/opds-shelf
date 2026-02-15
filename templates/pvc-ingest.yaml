@@ -1,0 +1,17 @@
+﻿{{- if and .Values.ingest.enabled .Values.ingest.persistence.enabled (not .Values.ingest.persistence.existingClaim) -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "opds-shelf.fullname" . }}-ingest
+  labels:
+    {{- include "opds-shelf.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    {{- toYaml .Values.ingest.persistence.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.ingest.persistence.size }}
+  {{- if .Values.ingest.persistence.storageClassName }}
+  storageClassName: {{ .Values.ingest.persistence.storageClassName }}
+  {{- end }}
+{{- end }}

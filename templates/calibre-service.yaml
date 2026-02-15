@@ -1,0 +1,17 @@
+﻿{{- if .Values.calibre.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "opds-shelf.fullname" . }}-calibre
+  labels:
+    {{- include "opds-shelf.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.calibre.service.type }}
+  selector:
+    {{- include "opds-shelf.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: calibre
+  ports:
+    - name: http
+      port: {{ .Values.calibre.service.port }}
+      targetPort: http
+{{- end }}

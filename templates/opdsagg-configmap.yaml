@@ -1,0 +1,24 @@
+﻿{{- if .Values.opdsAggregator.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "opds-shelf.fullname" . }}-opdsagg
+  labels:
+    {{- include "opds-shelf.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    {{- $root := . }}
+    sources:
+    {{- range .Values.opdsAggregator.config.sources }}
+      - name: {{ .name | quote }}
+        url: {{ default (printf "http://%s-calibreweb:%v/opds" (include "opds-shelf.fullname" $root) $root.Values.calibreWeb.service.port) .url | quote }}
+        {{- if .username }}
+        username: {{ .username | quote }}
+        {{- end }}
+        {{- if .password }}
+        password: {{ .password | quote }}
+        {{- end }}
+    {{- end }}
+    proxyDownloads: {{ .Values.opdsAggregator.config.proxyDownloads }}
+    proxyImages: {{ .Values.opdsAggregator.config.proxyImages }}
+{{- end }}

@@ -1,0 +1,17 @@
+﻿{{- if .Values.opdsAggregator.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "opds-shelf.fullname" . }}-opdsagg
+  labels:
+    {{- include "opds-shelf.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.opdsAggregator.service.type }}
+  selector:
+    {{- include "opds-shelf.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: opdsagg
+  ports:
+    - name: http
+      port: {{ .Values.opdsAggregator.service.port }}
+      targetPort: http
+{{- end }}

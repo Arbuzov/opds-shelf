@@ -1,0 +1,56 @@
+﻿{{- if .Values.calibreWeb.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "opds-shelf.fullname" . }}-calibreweb
+  labels:
+    {{- include "opds-shelf.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "opds-shelf.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: calibreweb
+  template:
+    metadata:
+      labels:
+        {{- include "opds-shelf.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: calibreweb
+    spec:
+      securityContext:
+        {{- toYaml .Values.calibreWeb.securityContext | nindent 8 }}
+      containers:
+        - name: calibre-web
+          image: "{{ .Values.calibreWeb.image.repository }}:{{ .Values.calibreWeb.image.tag }}"
+          imagePullPolicy: {{ .Values.calibreWeb.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.calibreWeb.service.port }}
+          env:
+            - name: TZ
+              value: {{ default .Values.global.timezone .Values.calibreWeb.env.TZ | quote }}
+            - name: PUID
+              value: {{ .Values.calibreWeb.env.PUID | quote }}
+            - name: PGID
+              value: {{ .Values.calibreWeb.env.PGID | quote }}
+          volumeMounts:
+            - name: calibreweb-config
+              mountPath: {{ .Values.calibreWeb.persistence.mountPath }}
+            - name: library
+              mountPath: {{ .Values.library.mountPath }}
+              readOnly: {{ .Values.library.calibreWebReadOnly }}
+          resources:
+            {{- toYaml .Values.calibreWeb.resources | nindent 12 }}
+      volumes:
+        - name: library
+          persistentVolumeClaim:
+            claimName: {{ default (printf "%s-library" (include "opds-shelf.fullname" .)) .Values.library.persistence.existingClaim }}
+        {{- if .Values.calibreWeb.persistence.enabled }}
+        - name: calibreweb-config
+          persistentVolumeClaim:
+            claimName: {{ default (printf "%s-calibreweb-config" (include "opds-shelf.fullname" .)) .Values.calibreWeb.persistence.existingClaim }}
+        {{- else }}
+        - name: calibreweb-config
+          emptyDir: {}
+        {{- end }}
+{{- end }}

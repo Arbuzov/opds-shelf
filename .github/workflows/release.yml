@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.4
+
+      - name: Lint chart
+        run: helm lint .
+
+      - name: Package chart
+        run: |
+          mkdir -p .deploy
+          helm dependency update .
+          helm package . --destination .deploy
+
+      - name: Prepare gh-pages worktree
+        run: |
+          if git ls-remote --exit-code --heads origin gh-pages; then
+            git fetch origin gh-pages:refs/remotes/origin/gh-pages
+            git worktree add gh-pages refs/remotes/origin/gh-pages
+          else
+            git worktree add -b gh-pages gh-pages
+          fi
+
+      - name: Update repo files
+        run: |
+          cp .deploy/*.tgz gh-pages/
+          cp artifacthub-repo.yml gh-pages/artifacthub-repo.yml
+          cd gh-pages
+          REPO_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
+          if [ -f index.yaml ]; then
+            helm repo index . --merge index.yaml --url "$REPO_URL"
+          else
+            helm repo index . --url "$REPO_URL"
+          fi
+
+      - name: Commit and push
+        run: |
+          cd gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "Release chart from ${GITHUB_SHA}"
+          git push origin HEAD:gh-pages
+

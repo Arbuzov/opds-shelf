@@ -1,0 +1,72 @@
+﻿{{- if .Values.calibre.enabled -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "opds-shelf.fullname" . }}-calibre
+  labels:
+    {{- include "opds-shelf.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "opds-shelf.fullname" . }}-calibre
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "opds-shelf.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: calibre
+  template:
+    metadata:
+      labels:
+        {{- include "opds-shelf.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: calibre
+    spec:
+      securityContext:
+        {{- toYaml .Values.calibre.securityContext | nindent 8 }}
+      containers:
+        - name: calibre
+          image: "{{ .Values.calibre.image.repository }}:{{ .Values.calibre.image.tag }}"
+          imagePullPolicy: {{ .Values.calibre.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.calibre.service.port }}
+          env:
+            - name: TZ
+              value: {{ default .Values.global.timezone .Values.calibre.env.TZ | quote }}
+            - name: PUID
+              value: {{ .Values.calibre.env.PUID | quote }}
+            - name: PGID
+              value: {{ .Values.calibre.env.PGID | quote }}
+          volumeMounts:
+            - name: calibre-config
+              mountPath: {{ .Values.calibre.persistence.mountPath }}
+            - name: library
+              mountPath: {{ .Values.library.mountPath }}
+          resources:
+            {{- toYaml .Values.calibre.resources | nindent 12 }}
+      volumes:
+        - name: library
+          persistentVolumeClaim:
+            claimName: {{ default (printf "%s-library" (include "opds-shelf.fullname" .)) .Values.library.persistence.existingClaim }}
+        {{- if .Values.calibre.persistence.existingClaim }}
+        - name: calibre-config
+          persistentVolumeClaim:
+            claimName: {{ .Values.calibre.persistence.existingClaim }}
+        {{- else if not .Values.calibre.persistence.enabled }}
+        - name: calibre-config
+          emptyDir: {}
+        {{- end }}
+  {{- if and .Values.calibre.persistence.enabled (not .Values.calibre.persistence.existingClaim) }}
+  volumeClaimTemplates:
+    - metadata:
+        name: calibre-config
+        labels:
+          {{- include "opds-shelf.labels" . | nindent 10 }}
+      spec:
+        accessModes:
+          {{- toYaml .Values.calibre.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.calibre.persistence.size }}
+        {{- if .Values.calibre.persistence.storageClassName }}
+        storageClassName: {{ .Values.calibre.persistence.storageClassName }}
+        {{- end }}
+  {{- end }}
+{{- end }}

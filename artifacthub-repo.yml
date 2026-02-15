@@ -1,0 +1,11 @@
+# Artifact Hub repository metadata file.
+# This file is copied to gh-pages by the release workflow.
+# Docs: https://artifacthub.io/docs/topics/repositories/helm-charts/
+
+owners:
+  - name: Your Name
+    email: you@example.com
+
+# Optional: set this after adding repository in Artifact Hub.
+# repositoryID: 00000000-0000-0000-0000-000000000000
+

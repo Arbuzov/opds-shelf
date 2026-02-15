@@ -1,0 +1,48 @@
+﻿{{- if .Values.opdsAggregator.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "opds-shelf.fullname" . }}-opdsagg
+  labels:
+    {{- include "opds-shelf.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "opds-shelf.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: opdsagg
+  template:
+    metadata:
+      labels:
+        {{- include "opds-shelf.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: opdsagg
+    spec:
+      securityContext:
+        {{- toYaml .Values.opdsAggregator.securityContext | nindent 8 }}
+      containers:
+        - name: opds-aggregator
+          image: "{{ .Values.opdsAggregator.image.repository }}:{{ .Values.opdsAggregator.image.tag }}"
+          imagePullPolicy: {{ .Values.opdsAggregator.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.opdsAggregator.service.port }}
+          env:
+            {{- if .Values.opdsAggregator.auth.enabled }}
+            - name: BASIC_AUTH_USERNAME
+              value: {{ .Values.opdsAggregator.auth.username | quote }}
+            - name: BASIC_AUTH_PASSWORD
+              value: {{ .Values.opdsAggregator.auth.password | quote }}
+            {{- end }}
+            - name: CONFIG_PATH
+              value: /etc/opds-aggregator/config.yaml
+          volumeMounts:
+            - name: config
+              mountPath: /etc/opds-aggregator
+              readOnly: true
+          resources:
+            {{- toYaml .Values.opdsAggregator.resources | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "opds-shelf.fullname" . }}-opdsagg
+{{- end }}

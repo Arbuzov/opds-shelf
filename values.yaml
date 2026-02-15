@@ -1,0 +1,141 @@
+﻿nameOverride: ""
+fullnameOverride: ""
+
+global:
+  timezone: "America/Montreal"
+
+library:
+  persistence:
+    enabled: true
+    existingClaim: ""
+    storageClassName: ""
+    accessModes: ["ReadWriteMany"]
+    size: 50Gi
+  mountPath: /books
+  calibreWebReadOnly: true
+
+ingest:
+  enabled: true
+  persistence:
+    enabled: true
+    existingClaim: ""
+    storageClassName: ""
+    accessModes: ["ReadWriteMany"]
+    size: 20Gi
+  mountPath: /ingest
+
+calibre:
+  enabled: true
+  image:
+    repository: ghcr.io/linuxserver/calibre
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+  persistence:
+    enabled: true
+    existingClaim: ""
+    storageClassName: ""
+    accessModes: ["ReadWriteOnce"]
+    size: 5Gi
+    mountPath: /config
+  env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: ""
+  resources: {}
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+
+calibreWeb:
+  enabled: true
+  image:
+    repository: ghcr.io/linuxserver/calibre-web
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8083
+  persistence:
+    enabled: true
+    existingClaim: ""
+    storageClassName: ""
+    accessModes: ["ReadWriteOnce"]
+    size: 5Gi
+    mountPath: /config
+  env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: ""
+    ENABLE_LIBRARY_WRITE: "false"
+  resources: {}
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+
+opdsAggregator:
+  enabled: true
+  image:
+    repository: ghcr.io/madeddie/opds-aggregator
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+  auth:
+    enabled: false
+    username: "opds"
+    password: "change-me"
+  config:
+    sources:
+      - name: "local-calibreweb"
+        # If empty, defaults to in-cluster Calibre-Web service URL.
+        url: ""
+        username: ""
+        password: ""
+    proxyDownloads: true
+    proxyImages: true
+  resources: {}
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+
+importer:
+  enabled: true
+  schedule: "*/30 * * * *"
+  image:
+    repository: ghcr.io/linuxserver/calibre
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources: {}
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+
+ingress:
+  enabled: true
+  className: ""
+  annotations: {}
+  hosts:
+    - host: opds.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: opdsAggregator
+          port: 8080
+    - host: calibreweb.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: calibreWeb
+          port: 8083
+  tls: []
