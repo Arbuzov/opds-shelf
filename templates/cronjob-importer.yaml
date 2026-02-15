@@ -28,7 +28,7 @@ spec:
               env:
                 - name: TZ
                   value: {{ .Values.global.timezone | quote }}
-              command: ["/bin/sh", "-lc"]
+              command: ["/bin/bash", "-lc"]
               args:
                 - |
                   set -euo pipefail
