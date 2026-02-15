@@ -8,17 +8,37 @@ metadata:
 data:
   config.yaml: |
     {{- $root := . }}
-    sources:
-    {{- range .Values.opdsAggregator.config.sources }}
+    server:
+      addr: ":{{ .Values.opdsAggregator.service.port }}"
+      title: {{ default "OPDS Aggregator" .Values.opdsAggregator.config.title | quote }}
+      {{- if .Values.opdsAggregator.auth.enabled }}
+      auth:
+        username: {{ .Values.opdsAggregator.auth.username | quote }}
+        password: {{ .Values.opdsAggregator.auth.password | quote }}
+      {{- end }}
+      {{- if .Values.opdsAggregator.config.defaultMaxEntries }}
+      default_max_entries: {{ .Values.opdsAggregator.config.defaultMaxEntries }}
+      {{- end }}
+    polling:
+      interval: {{ default "6h" .Values.opdsAggregator.config.pollingInterval | quote }}
+    feeds:
+    {{- range .Values.opdsAggregator.config.feeds }}
       - name: {{ .name | quote }}
         url: {{ default (printf "http://%s-calibreweb:%v/opds" (include "opds-shelf.fullname" $root) $root.Values.calibreWeb.service.port) .url | quote }}
-        {{- if .username }}
-        username: {{ .username | quote }}
+        {{- if .pollDepth }}
+        poll_depth: {{ .pollDepth }}
         {{- end }}
-        {{- if .password }}
-        password: {{ .password | quote }}
+        {{- if .maxEntries }}
+        max_entries: {{ .maxEntries }}
+        {{- end }}
+        {{- if .auth }}
+        auth:
+          {{- if .auth.username }}
+          username: {{ .auth.username | quote }}
+          {{- end }}
+          {{- if .auth.password }}
+          password: {{ .auth.password | quote }}
+          {{- end }}
         {{- end }}
     {{- end }}
-    proxyDownloads: {{ .Values.opdsAggregator.config.proxyDownloads }}
-    proxyImages: {{ .Values.opdsAggregator.config.proxyImages }}
 {{- end }}

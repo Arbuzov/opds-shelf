@@ -45,11 +45,7 @@ calibre:
     PGID: "1000"
     TZ: ""
   resources: {}
-  securityContext:
-    runAsNonRoot: true
-    runAsUser: 1000
-    runAsGroup: 1000
-    fsGroup: 1000
+  securityContext: {}
 
 calibreWeb:
   enabled: true
@@ -73,11 +69,7 @@ calibreWeb:
     TZ: ""
     ENABLE_LIBRARY_WRITE: "false"
   resources: {}
-  securityContext:
-    runAsNonRoot: true
-    runAsUser: 1000
-    runAsGroup: 1000
-    fsGroup: 1000
+  securityContext: {}
 
 opdsAggregator:
   enabled: true
@@ -93,14 +85,14 @@ opdsAggregator:
     username: "opds"
     password: "change-me"
   config:
-    sources:
+    title: "OPDS Aggregator"
+    pollingInterval: "6h"
+    defaultMaxEntries: 0
+    feeds:
       - name: "local-calibreweb"
         # If empty, defaults to in-cluster Calibre-Web service URL.
         url: ""
-        username: ""
-        password: ""
-    proxyDownloads: true
-    proxyImages: true
+        pollDepth: 1
   resources: {}
   securityContext:
     runAsNonRoot: true
@@ -115,11 +107,7 @@ importer:
     tag: latest
     pullPolicy: IfNotPresent
   resources: {}
-  securityContext:
-    runAsNonRoot: true
-    runAsUser: 1000
-    runAsGroup: 1000
-    fsGroup: 1000
+  securityContext: {}
 
 ingress:
   enabled: true
