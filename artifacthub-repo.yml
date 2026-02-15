@@ -6,6 +6,4 @@ owners:
   - name: Your Name
     email: you@example.com
 
-# Optional: set this after adding repository in Artifact Hub.
-# repositoryID: 00000000-0000-0000-0000-000000000000
-
+repositoryID: 990b98ed-099b-4543-9164-6661435fe529
