@@ -68,6 +68,7 @@ calibreWeb:
     PGID: "1000"
     TZ: ""
     ENABLE_LIBRARY_WRITE: "false"
+  extraEnv: {}
   resources: {}
   securityContext: {}
 

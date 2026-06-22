@@ -33,6 +33,14 @@ spec:
               value: {{ .Values.calibreWeb.env.PUID | quote }}
             - name: PGID
               value: {{ .Values.calibreWeb.env.PGID | quote }}
+            {{- if .Values.calibreWeb.env.ENABLE_LIBRARY_WRITE }}
+            - name: ENABLE_LIBRARY_WRITE
+              value: {{ .Values.calibreWeb.env.ENABLE_LIBRARY_WRITE | quote }}
+            {{- end }}
+            {{- range $k, $v := .Values.calibreWeb.extraEnv }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
           volumeMounts:
             - name: calibreweb-config
               mountPath: {{ .Values.calibreWeb.persistence.mountPath }}
