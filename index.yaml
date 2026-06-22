@@ -3,7 +3,18 @@ entries:
   opds-shelf:
   - apiVersion: v2
     appVersion: "1.0"
-    created: "2026-02-15T17:01:54.456802188Z"
+    created: "2026-06-22T12:21:24.620503856Z"
+    description: Calibre + Calibre-Web + OPDS Aggregator (with optional importer)
+      for hosting an OPDS library in Kubernetes
+    digest: 73edc1e1ca249866582005059b9541dadabc8c1cd5a48f717df9bffc3ac3b1d3
+    name: opds-shelf
+    type: application
+    urls:
+    - https://Arbuzov.github.io/opds-shelf/opds-shelf-0.4.0.tgz
+    version: 0.4.0
+  - apiVersion: v2
+    appVersion: "1.0"
+    created: "2026-06-22T12:21:24.616014301Z"
     description: Calibre + Calibre-Web + OPDS Aggregator (with optional importer)
       for hosting an OPDS library in Kubernetes
     digest: f3dac221e5f3bd0866da1f2ecd441279821b52cccfe108e21ae3e7a9c48a6329
@@ -14,7 +25,7 @@ entries:
     version: 0.3.0
   - apiVersion: v2
     appVersion: "1.0"
-    created: "2026-02-15T17:01:54.452889261Z"
+    created: "2026-06-22T12:21:24.613353215Z"
     description: Calibre + Calibre-Web + OPDS Aggregator (with optional importer)
       for hosting an OPDS library in Kubernetes
     digest: d0191687299fb3d43908d776be67b84542149c6070a0d724391cdcf11a113260
@@ -25,7 +36,7 @@ entries:
     version: 0.2.0
   - apiVersion: v2
     appVersion: "1.0"
-    created: "2026-02-15T17:01:54.450769782Z"
+    created: "2026-06-22T12:21:24.611154537Z"
     description: Calibre + Calibre-Web + OPDS Aggregator (with optional importer)
       for hosting an OPDS library in Kubernetes
     digest: a280d1fa2496a61e36446f58a7aad2145423a1c1902e7131482bf9e993d87bd1
@@ -34,4 +45,4 @@ entries:
     urls:
     - https://Arbuzov.github.io/opds-shelf/opds-shelf-0.1.0.tgz
     version: 0.1.0
-generated: "2026-02-15T17:01:54.448720385Z"
+generated: "2026-06-22T12:21:24.608354442Z"
